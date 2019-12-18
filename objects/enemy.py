@@ -52,9 +52,11 @@ class Enemy:
             self.set_op_dir()
             self.move_count = self.move_max_count
 
-        self.collisions_dict, check_move_params, not_used_1, check_if_player, not_used_2, not_used_3 = collision.move_and_collide(self.rect, self.move_params, objects, False)
+        self.collisions_dict, check_move_params, not_used_1, not_used_2, check_if_player, not_used_3, not_used_4 = collision.move_and_collide(self.rect, self.move_params, objects, False)
 
-        self.rect.x -= scroll_movement[0]
+        if len(scroll_movement) > 0:
+            self.rect.x -= scroll_movement[0]
+            self.rect.y -= scroll_movement[1]
 
         if check_if_player:
             return True

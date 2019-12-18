@@ -45,9 +45,9 @@ class Player:
         if self.vertical_momentum < 0 and self.collisions_dict["up"]:
             self.vertical_momentum = 0
 
-        move_params[1] += self.vertical_momentum
+        move_params[1] += int(self.vertical_momentum)
 
-        self.collisions_dict, check_move_params, collide_enemy, collide_bonus, killed_enemies, is_finish = move_and_collide(self.rect, move_params, objects, True)
+        self.collisions_dict, check_move_params, actual_move, collide_enemy, collide_bonus, killed_enemies, is_finish = move_and_collide(self.rect, move_params, objects, True)
 
         for b in collide_bonus:
             self.score += 1
@@ -58,6 +58,8 @@ class Player:
         if len(collide_enemy) > len(killed_enemies):
             return [], "game_over", [], [], False
 
-        self.rect.x -= move_params[0] * check_move_params[0]
+        self.rect.x -= actual_move[0]
+        self.rect.y -= actual_move[1]
 
-        return [move_params[0]*check_move_params[0], move_params[1]*check_move_params[1]], collide_enemy, collide_bonus, killed_enemies, is_finish
+
+        return [actual_move[0], actual_move[1]], collide_enemy, collide_bonus, killed_enemies, is_finish

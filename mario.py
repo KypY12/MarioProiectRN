@@ -5,6 +5,7 @@ import pygame.locals
 
 from helpers.mapfunctions import *
 from helpers.otherfunctions import *
+from objects.sensor import Sensor
 
 
 def start_game():
@@ -45,14 +46,16 @@ def start_game():
 
     TILES_COUNT_X, TILES_COUNT_Y, WINDOW_HEIGHT, tiles, player, enemies, bonuses, finish_states = load_map("maps/better_map.map")
 
-    all_except_player = tiles + enemies + bonuses + finish_states
-
     clock = pygame.time.Clock()
     pygame.display.set_caption("IT'S ME, running from the unleashed wolves!")
     print(WINDOW_HEIGHT)
     print(WINDOW_WIDTH)
     window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), 0, 32)
     scroll_params = [0, 0]
+
+    sensors = []
+    if WITH_SENSORS:
+        sensors = create_sensors(player, window)
 
     for tile in tiles:
         tile.window = window
@@ -68,6 +71,8 @@ def start_game():
 
     player.window = window
 
+    all_except_player = tiles + enemies + bonuses + finish_states + sensors
+
     while True:
         window.fill((0, 0, 0))
         pressed = pygame.key.get_pressed()
@@ -79,6 +84,8 @@ def start_game():
                 pygame.quit()
                 sys.exit()
 
+        scroll_params, collide_enemy, collide_bonus, killed_enemies, is_win = player.move(pressed, tiles + enemies + bonuses + finish_states)
+
         enemy_hit = False
         for enemy in enemies:
             if enemy.move([player] + tiles, scroll_params):
@@ -87,8 +94,6 @@ def start_game():
         if enemy_hit:
             game_over(window, player.score)
             break
-
-        scroll_params, collide_enemy, collide_bonus, killed_enemies, is_win = player.move(pressed, tiles + enemies + bonuses + finish_states)
 
         if is_win:
             gg_wp(window, player.score)
@@ -121,6 +126,9 @@ def start_game():
 
         for finish in finish_states:
             finish.move(scroll_params)
+
+        for sensor in sensors:
+            sensor.move(scroll_params, all_except_player)
 
         closer_objects = []
         for obj in all_except_player:

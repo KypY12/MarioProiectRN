@@ -15,7 +15,7 @@ def get_element_as_object(element, x, y):
     elif element == "B":
         return Bonus(None, x*TILE_WIDTH, y*TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT)
     elif element == "P":
-        return Player(None, x*TILE_WIDTH, y*TILE_HEIGHT, 2*TILE_WIDTH, 3*TILE_HEIGHT)
+        return Player(None, x*TILE_WIDTH, y*TILE_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT)
     elif element == "F":
         return Finish(None, x*TILE_WIDTH, y*TILE_HEIGHT, 2*TILE_WIDTH, 3*TILE_HEIGHT)
 

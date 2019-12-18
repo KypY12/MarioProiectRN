@@ -12,3 +12,4 @@ class Bonus:
 
     def move(self, scroll_move):
         self.rect.x -= scroll_move[0]
+        self.rect.y -= scroll_move[1]

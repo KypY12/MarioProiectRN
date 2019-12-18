@@ -4,6 +4,14 @@ from objects.finish import Finish
 from objects.tile import Tile
 
 
+def get_collisions_all(target_entity, objects):
+    collisions = []
+    for obj in objects:
+        if target_entity.colliderect(obj.rect):
+            collisions.append(obj)
+    return collisions
+
+
 def get_collisions(target_entity, objects, is_player):
     collisions = []
     for obj in objects:
@@ -53,6 +61,8 @@ def move_and_collide(target_entity, move_params, objects, is_player):
     is_finish = False
 
     check_move_params = [1, 1]
+    actual_moves = [move_params[0], move_params[1]]
+    last_pos = [target_entity.x, target_entity.y]
 
     # Facem mai intai miscarea pe axa X
     target_entity.x += move_params[0]
@@ -68,6 +78,8 @@ def move_and_collide(target_entity, move_params, objects, is_player):
             # Punem target_entity exact in dreapta acelui obiect
             target_entity.x = collisions[max_index].rect.x + collisions[max_index].rect.width
 
+            actual_moves[0] = target_entity.x - last_pos[0]
+
             left_collision = True
             check_move_params[0] = 0
             object_index = max_index
@@ -78,6 +90,8 @@ def move_and_collide(target_entity, move_params, objects, is_player):
             min_index = get_first_collision(collisions, "x", "right")
             # Punem target_entity exact in stanga acelui obiect
             target_entity.x = collisions[min_index].rect.x - target_entity.width
+
+            actual_moves[0] = target_entity.x - last_pos[0]
 
             right_collision = True
             check_move_params[0] = 0
@@ -106,6 +120,8 @@ def move_and_collide(target_entity, move_params, objects, is_player):
             # Punem target_entity exact sub acel obiect
             target_entity.y = collisions[max_index].rect.y + collisions[max_index].rect.height
 
+            actual_moves[1] = target_entity.y - last_pos[1]
+
             up_collision = True
             check_move_params[1] = 0
             object_index = max_index
@@ -115,6 +131,8 @@ def move_and_collide(target_entity, move_params, objects, is_player):
             min_index = get_first_collision(collisions, "y", "down")
             # Punem target_entity exact deasupra acelui obiect
             target_entity.y = collisions[min_index].rect.y - target_entity.height
+
+            actual_moves[1] = target_entity.y - last_pos[1]
 
             down_collision = True
             check_move_params[1] = 0
@@ -134,7 +152,7 @@ def move_and_collide(target_entity, move_params, objects, is_player):
             collide_bonus += [collisions[object_index]]
 
     return {"up": up_collision, "down": down_collision, "left": left_collision,
-            "right": right_collision}, check_move_params, collide_enemy, collide_bonus, killed_enemies, is_finish
+            "right": right_collision}, check_move_params, actual_moves, collide_enemy, collide_bonus, killed_enemies, is_finish
 
 
 # for obj in collisions:
