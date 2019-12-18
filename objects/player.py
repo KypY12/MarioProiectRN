@@ -13,8 +13,7 @@ class Player:
 
         self.score = 0
 
-    def draw(self, scroll_movement):
-        self.rect.x -= scroll_movement[0]
+    def draw(self):
         pygame.draw.rect(self.window, self.color, self.rect, 0)
 
     def move(self, pressed, objects):
@@ -58,5 +57,7 @@ class Player:
 
         if len(collide_enemy) > len(killed_enemies):
             return [], "game_over", [], [], False
+
+        self.rect.x -= move_params[0]
 
         return [move_params[0]*check_move_params[0], move_params[1]*check_move_params[1]], collide_enemy, collide_bonus, killed_enemies, is_finish

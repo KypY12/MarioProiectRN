@@ -1,6 +1,15 @@
-def draw_objects(objects, scroll_movement):
+from globals import *
+
+
+def move_tiles(objects, scroll_movement):
     for object in objects:
-        object.draw(scroll_movement)
+        object.move(scroll_movement[0])
+
+
+def draw_objects(objects, player):
+    player.draw()
+    for object in objects:
+        object.draw()
 
 
 # def draw_tiles(rects, scroll_move):

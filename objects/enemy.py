@@ -9,14 +9,13 @@ class Enemy:
         self.color = (250, 200, 100)
 
         self.move_params = [0, 0]
-        self.move_step = 3
+        self.move_step = 5
         self.move_max_count = 500
         self.move_count = self.move_max_count
         self.collisions_dict = {"up": False, "down": False, "right": False, "left": False}
         self.direction = "right"
 
-    def draw(self, scroll_movement):
-        self.rect.x -= scroll_movement[0]
+    def draw(self):
         pygame.draw.rect(self.window, self.color, self.rect, 0)
 
     def move_on_direction(self):
@@ -39,7 +38,7 @@ class Enemy:
         else:
             self.direction = "up"
 
-    def move(self, objects):
+    def move(self, objects, scroll_movement):
         # other_objects = [obj.rect for obj in objects if obj.rect != self.rect]
         if self in objects:
             objects.remove(self)
@@ -54,6 +53,8 @@ class Enemy:
             self.move_count = self.move_max_count
 
         self.collisions_dict, check_move_params, not_used_1, check_if_player, not_used_2, not_used_3 = collision.move_and_collide(self.rect, self.move_params, objects, False)
+
+        self.rect.x -= scroll_movement[0]
 
         if check_if_player:
             return True

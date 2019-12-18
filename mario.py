@@ -25,7 +25,6 @@ def start_game():
 
         pygame.display.flip()
 
-
     def game_over(window, score):
         font_1 = pygame.font.Font('freesansbold.ttf', 64)
         font_2 = pygame.font.Font('freesansbold.ttf', 32)
@@ -44,13 +43,16 @@ def start_game():
 
     pygame.init()
 
-    TILES_COUNT_X, TILES_COUNT_Y, WINDOW_HEIGHT, tiles, player, enemies, bonuses, finish_states = load_map("maps/my_first_map.map")
+    TILES_COUNT_X, TILES_COUNT_Y, WINDOW_HEIGHT, tiles, player, enemies, bonuses, finish_states = load_map("maps/better_map.map")
+
+    all_except_player = tiles + enemies + bonuses + finish_states
 
     clock = pygame.time.Clock()
     pygame.display.set_caption("IT'S ME, running from the unleashed wolves!")
     print(WINDOW_HEIGHT)
     print(WINDOW_WIDTH)
     window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), 0, 32)
+    scroll_params = [0, 0]
 
     for tile in tiles:
         tile.window = window
@@ -79,7 +81,7 @@ def start_game():
 
         enemy_hit = False
         for enemy in enemies:
-            if enemy.move([player] + tiles):
+            if enemy.move([player] + tiles, scroll_params):
                 enemy_hit = True
                 break
         if enemy_hit:
@@ -94,7 +96,9 @@ def start_game():
 
         for killed in killed_enemies:
             if killed in enemies:
+                player.score += 2
                 enemies.remove(killed)
+                all_except_player.remove(killed)
 
         if player.rect.y > WINDOW_HEIGHT:
             game_over(window, player.score)
@@ -103,12 +107,27 @@ def start_game():
         for bonus in collide_bonus:
             if bonus in bonuses:
                 bonuses.remove(bonus)
+                all_except_player.remove(bonus)
 
         if collide_enemy == "game_over":
             game_over(window, player.score)
             break
 
-        draw_objects(tiles + enemies + bonuses + finish_states + [player], scroll_params)
+        for tile in tiles:
+            tile.move(scroll_params)
+
+        for bonus in bonuses:
+            bonus.move(scroll_params)
+
+        for finish in finish_states:
+            finish.move(scroll_params)
+
+        closer_objects = []
+        for obj in all_except_player:
+            if abs(player.rect.x - obj.rect.x) <= WINDOW_WIDTH:
+                closer_objects.append(obj)
+
+        draw_objects(closer_objects, player)
         pygame.display.flip()
         clock.tick(TICK_RATE)
 
