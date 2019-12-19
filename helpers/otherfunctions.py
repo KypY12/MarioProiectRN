@@ -75,6 +75,16 @@ def create_sensors(player, window):
     return sensors
 
 
+def get_nn_input(sensors):
+    input = []
+    for sens in sensors:
+        input += [sens.get_nn_input_value()]
+
+    # print(np.array([input]))
+    return np.array([input])
+
+
+
 
 
 # def draw_tiles(rects, scroll_move):

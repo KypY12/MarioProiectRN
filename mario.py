@@ -6,6 +6,7 @@ import pygame.locals
 from helpers.mapfunctions import *
 from helpers.otherfunctions import *
 from objects.sensor import Sensor
+# from neural_network import *
 
 
 def start_game():
@@ -71,11 +72,18 @@ def start_game():
 
     player.window = window
 
-    all_except_player = tiles + enemies + bonuses + finish_states + sensors
+    all_except_player = tiles + enemies + bonuses + finish_states
+    if DRAW_SENSORS:
+        all_except_player += sensors
 
     while True:
         window.fill((0, 0, 0))
         pressed = pygame.key.get_pressed()
+
+        # last_ai_action = pygame.K_RIGHT
+        # ai_pressed = get_action_from_nn(get_nn_input(sensors), last_ai_action)
+        ai_pressed = []
+
         if pressed[pygame.K_ESCAPE]:
             pygame.quit()
             sys.exit()
@@ -84,7 +92,7 @@ def start_game():
                 pygame.quit()
                 sys.exit()
 
-        scroll_params, collide_enemy, collide_bonus, killed_enemies, is_win = player.move(pressed, tiles + enemies + bonuses + finish_states)
+        scroll_params, collide_enemy, collide_bonus, killed_enemies, is_win = player.move(ai_pressed, pressed, tiles + enemies + bonuses + finish_states)
 
         enemy_hit = False
         for enemy in enemies:
@@ -127,13 +135,18 @@ def start_game():
         for finish in finish_states:
             finish.move(scroll_params)
 
-        for sensor in sensors:
-            sensor.move(scroll_params, all_except_player)
-
         closer_objects = []
         for obj in all_except_player:
             if abs(player.rect.x - obj.rect.x) <= WINDOW_WIDTH:
                 closer_objects.append(obj)
+
+        much_closer_objects = []
+        for obj in closer_objects:
+            if abs(player.rect.x - obj.rect.x) <= SENSOR_MAX_DISTANCE_COL_CHECK:
+                much_closer_objects.append(obj)
+
+        for sensor in sensors:
+            sensor.move(scroll_params, much_closer_objects)
 
         draw_objects(closer_objects, player)
         pygame.display.flip()

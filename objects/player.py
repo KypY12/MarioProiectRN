@@ -16,7 +16,7 @@ class Player:
     def draw(self):
         pygame.draw.rect(self.window, self.color, self.rect, 0)
 
-    def move(self, pressed, objects):
+    def move(self, nn_pressed, pressed, objects):
         # other_objects = [obj for obj in objects if obj.rect != self.rect]
         if self in objects:
             objects.remove(self)
@@ -26,12 +26,22 @@ class Player:
 
         move_params = [0, 0]
 
-        if pressed[pygame.K_LEFT]:
-            move_params[0] -= PLAYER_MOVEMENT_SPEED
-        if pressed[pygame.K_RIGHT]:
-            move_params[0] += PLAYER_MOVEMENT_SPEED
-        if pressed[pygame.K_UP] and self.collisions_dict["down"]:
-            self.vertical_momentum = -GRAVITY
+        if HUMAN_PLAYER:
+            if pressed[pygame.K_LEFT]:
+                move_params[0] -= PLAYER_MOVEMENT_SPEED
+            if pressed[pygame.K_RIGHT]:
+                move_params[0] += PLAYER_MOVEMENT_SPEED
+            if pressed[pygame.K_UP] and self.collisions_dict["down"]:
+                self.vertical_momentum = -GRAVITY
+        else:
+            if nn_pressed[pygame.K_LEFT]:
+                move_params[0] -= PLAYER_MOVEMENT_SPEED
+            if nn_pressed[pygame.K_RIGHT]:
+                move_params[0] += PLAYER_MOVEMENT_SPEED
+            if nn_pressed[pygame.K_UP] and self.collisions_dict["down"]:
+                self.vertical_momentum = -GRAVITY
+
+
 
         if not self.collisions_dict["down"]:
             if self.vertical_momentum < GRAVITY:
@@ -59,7 +69,7 @@ class Player:
             return [], "game_over", [], [], False
 
         self.rect.x -= actual_move[0]
-        self.rect.y -= actual_move[1]
-
+        if IS_WINDOW_FOLLOW_Y:
+            self.rect.y -= actual_move[1]
 
         return [actual_move[0], actual_move[1]], collide_enemy, collide_bonus, killed_enemies, is_finish

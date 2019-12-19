@@ -56,7 +56,8 @@ class Enemy:
 
         if len(scroll_movement) > 0:
             self.rect.x -= scroll_movement[0]
-            self.rect.y -= scroll_movement[1]
+            if IS_WINDOW_FOLLOW_Y:
+                self.rect.y -= scroll_movement[1]
 
         if check_if_player:
             return True
