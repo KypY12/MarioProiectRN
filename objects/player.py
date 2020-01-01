@@ -34,14 +34,12 @@ class Player:
             if pressed[pygame.K_UP] and self.collisions_dict["down"]:
                 self.vertical_momentum = -GRAVITY
         else:
-            if nn_pressed[pygame.K_LEFT]:
+            if nn_pressed == pygame.K_LEFT:
                 move_params[0] -= PLAYER_MOVEMENT_SPEED
-            if nn_pressed[pygame.K_RIGHT]:
+            if nn_pressed == pygame.K_RIGHT:
                 move_params[0] += PLAYER_MOVEMENT_SPEED
-            if nn_pressed[pygame.K_UP] and self.collisions_dict["down"]:
+            if nn_pressed == pygame.K_UP and self.collisions_dict["down"]:
                 self.vertical_momentum = -GRAVITY
-
-
 
         if not self.collisions_dict["down"]:
             if self.vertical_momentum < GRAVITY:
@@ -62,14 +60,17 @@ class Player:
         for b in collide_bonus:
             self.score += 1
 
-        if is_finish:
-            return [], [], [], [], True
-
-        if len(collide_enemy) > len(killed_enemies):
-            return [], "game_over", [], [], False
+        for killed_enemy in killed_enemies:
+            self.score += 2
 
         self.rect.x -= actual_move[0]
         if IS_WINDOW_FOLLOW_Y:
             self.rect.y -= actual_move[1]
+
+        if is_finish:
+            return [actual_move[0], actual_move[1]], [], [], [], True
+
+        if len(collide_enemy) > len(killed_enemies):
+            return [actual_move[0], actual_move[1]], "game_over", [], [], False
 
         return [actual_move[0], actual_move[1]], collide_enemy, collide_bonus, killed_enemies, is_finish

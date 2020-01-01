@@ -6,46 +6,49 @@ import pygame.locals
 from helpers.mapfunctions import *
 from helpers.otherfunctions import *
 from objects.sensor import Sensor
-# from neural_network import *
+from neural_network import *
 
 
-def start_game():
-
+def start_game(count_iter):
     def gg_wp(window, score):
-        font_1 = pygame.font.Font('freesansbold.ttf', 64)
-        font_2 = pygame.font.Font('freesansbold.ttf', 32)
+        if count_iter > LIMIT_WHEN_START_DRAWING:
 
-        game_over_text = font_1.render('GG WP', True, (0, 255, 0))
-        game_over_text_rect = game_over_text.get_rect()
-        game_over_text_rect.center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 - 50)
-        window.blit(game_over_text, game_over_text_rect)
+            font_1 = pygame.font.Font('freesansbold.ttf', 64)
+            font_2 = pygame.font.Font('freesansbold.ttf', 32)
 
-        score_text = font_2.render("Score : "+str(score), True, (0, 255, 0))
-        score_text_rect = score_text.get_rect()
-        score_text_rect.center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 + 50)
-        window.blit(score_text, score_text_rect)
+            game_over_text = font_1.render('GG WP', True, (0, 255, 0))
+            game_over_text_rect = game_over_text.get_rect()
+            game_over_text_rect.center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 - 50)
+            window.blit(game_over_text, game_over_text_rect)
 
-        pygame.display.flip()
+            score_text = font_2.render("Score : " + str(score), True, (0, 255, 0))
+            score_text_rect = score_text.get_rect()
+            score_text_rect.center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 + 50)
+            window.blit(score_text, score_text_rect)
+
+            pygame.display.flip()
 
     def game_over(window, score):
-        font_1 = pygame.font.Font('freesansbold.ttf', 64)
-        font_2 = pygame.font.Font('freesansbold.ttf', 32)
+        if count_iter > LIMIT_WHEN_START_DRAWING:
+            font_1 = pygame.font.Font('freesansbold.ttf', 64)
+            font_2 = pygame.font.Font('freesansbold.ttf', 32)
 
-        game_over_text = font_1.render('Game over', True, (255, 0, 0))
-        game_over_text_rect = game_over_text.get_rect()
-        game_over_text_rect.center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 - 50)
-        window.blit(game_over_text, game_over_text_rect)
+            game_over_text = font_1.render('Game over', True, (255, 0, 0))
+            game_over_text_rect = game_over_text.get_rect()
+            game_over_text_rect.center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 - 50)
+            window.blit(game_over_text, game_over_text_rect)
 
-        score_text = font_2.render("Score : "+str(score), True, (255, 0, 0))
-        score_text_rect = score_text.get_rect()
-        score_text_rect.center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 + 50)
-        window.blit(score_text, score_text_rect)
+            score_text = font_2.render("Score : " + str(score), True, (255, 0, 0))
+            score_text_rect = score_text.get_rect()
+            score_text_rect.center = (WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 + 50)
+            window.blit(score_text, score_text_rect)
 
-        pygame.display.flip()
+            pygame.display.flip()
 
     pygame.init()
 
-    TILES_COUNT_X, TILES_COUNT_Y, WINDOW_HEIGHT, tiles, player, enemies, bonuses, finish_states = load_map("maps/better_map.map")
+    TILES_COUNT_X, TILES_COUNT_Y, WINDOW_HEIGHT, tiles, player, enemies, bonuses, finish_states = load_map(
+        "maps/better_map.map")
 
     clock = pygame.time.Clock()
     pygame.display.set_caption("IT'S ME, running from the unleashed wolves!")
@@ -76,14 +79,28 @@ def start_game():
     if DRAW_SENSORS:
         all_except_player += sensors
 
+    count_iteration = 0
+    state = []
+    ai_pressed, previous_input, previous_output = [], [], []
+    reward = 0
+
     while True:
         window.fill((0, 0, 0))
         pressed = pygame.key.get_pressed()
 
-        # last_ai_action = pygame.K_RIGHT
-        # ai_pressed = get_action_from_nn(get_nn_input(sensors), last_ai_action)
-        ai_pressed = []
+        if count_iteration == NN_ITER_IN_STATE and previous_input != []:
+            # De aici in jos ne aflam deja in urmatorul state (dupa ce am aplicat actiunea ai_pressed)
+            train_network(np.array([state]), reward, previous_input, previous_output)
 
+        # Preiau de la RN actiunea pe care o voi executa
+        if count_iteration == NN_ITER_IN_STATE:
+            reward = 0
+            ai_pressed, previous_input, previous_output = get_action_from_nn(np.array([state]))
+            if ai_pressed == pygame.K_LEFT:
+                reward += Q_REWARD_MOVING_LEFT
+            state = []
+
+        # Se continua iteratia jocului
         if pressed[pygame.K_ESCAPE]:
             pygame.quit()
             sys.exit()
@@ -92,7 +109,8 @@ def start_game():
                 pygame.quit()
                 sys.exit()
 
-        scroll_params, collide_enemy, collide_bonus, killed_enemies, is_win = player.move(ai_pressed, pressed, tiles + enemies + bonuses + finish_states)
+        scroll_params, collide_enemy, collide_bonus, killed_enemies, is_win = player.move(ai_pressed, pressed,
+                                                                                          tiles + enemies + bonuses + finish_states)
 
         enemy_hit = False
         for enemy in enemies:
@@ -100,29 +118,38 @@ def start_game():
                 enemy_hit = True
                 break
         if enemy_hit:
+            reward += Q_REWARD_ENEMY_HIT
             game_over(window, player.score)
             break
 
         if is_win:
+            reward += Q_REWARD_WIN
             gg_wp(window, player.score)
             break
 
         for killed in killed_enemies:
             if killed in enemies:
-                player.score += 2
+                # reward atunci cand omoara un inamic
+                reward += Q_REWARD_ENEMY_KILLED
+
                 enemies.remove(killed)
                 all_except_player.remove(killed)
 
         if player.rect.y > WINDOW_HEIGHT:
+            reward += Q_REWARD_GAP_FALL
             game_over(window, player.score)
             break
 
         for bonus in collide_bonus:
             if bonus in bonuses:
+                # reward atunci cand ia un bonus
+                reward += Q_REWARD_BONUS_HIT
+
                 bonuses.remove(bonus)
                 all_except_player.remove(bonus)
 
         if collide_enemy == "game_over":
+            reward += Q_REWARD_ENEMY_HIT
             game_over(window, player.score)
             break
 
@@ -148,9 +175,44 @@ def start_game():
         for sensor in sensors:
             sensor.move(scroll_params, much_closer_objects)
 
-        draw_objects(closer_objects, player)
-        pygame.display.flip()
-        clock.tick(TICK_RATE)
+        if count_iteration < NN_ITER_IN_STATE:
+            state += get_nn_input(sensors)
+            count_iteration += 1
+        else:
+            count_iteration = 0
+
+        count_iter += 1
+        if count_iter > LIMIT_WHEN_START_DRAWING:
+            draw_objects(closer_objects, player)
+            pygame.display.flip()
+            clock.tick(TICK_RATE)
+
+    if count_iteration <= NN_ITER_IN_STATE:
+        closer_objects = []
+        for obj in all_except_player:
+            if abs(player.rect.x - obj.rect.x) <= WINDOW_WIDTH:
+                closer_objects.append(obj)
+
+        much_closer_objects = []
+        for obj in closer_objects:
+            if abs(player.rect.x - obj.rect.x) <= SENSOR_MAX_DISTANCE_COL_CHECK:
+                much_closer_objects.append(obj)
+
+        for sensor in sensors:
+            sensor.move(scroll_params, much_closer_objects)
+
+        state += get_nn_input(sensors)
+
+    # print(np.array([state]).shape)
+    # print(state)
+    # Prelucram putin
+    missiong_count = int((NN_ITER_IN_STATE * len(sensors) - len(state)) / len(sensors))
+    # print(missiong_count)
+    processed_state = state + state[len(state) - len(sensors):] * missiong_count
+
+    # print(np.array([processed_state]).shape)
+
+    train_network(np.array([processed_state]), reward, previous_input, previous_output)
 
     time.sleep(2)
     return True
@@ -165,9 +227,10 @@ def start_game():
     #     return False
 
 
-keep_playing = start_game()
+count_iter = 0
+keep_playing = start_game(count_iter)
 while keep_playing:
-    start_game()
+    keep_playing = start_game(count_iter)
 
 pygame.quit()
 
