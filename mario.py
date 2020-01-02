@@ -7,11 +7,14 @@ from helpers.mapfunctions import *
 from helpers.otherfunctions import *
 from objects.sensor import Sensor
 from neural_network import *
+import neural_network as nn
+import globals
 
 
 def start_game(count_iter):
+
     def gg_wp(window, score):
-        if count_iter > LIMIT_WHEN_START_DRAWING:
+        if count_iter > LIMIT_WHEN_START_DRAWING and globals.DRAW_ALL:
 
             font_1 = pygame.font.Font('freesansbold.ttf', 64)
             font_2 = pygame.font.Font('freesansbold.ttf', 32)
@@ -29,7 +32,7 @@ def start_game(count_iter):
             pygame.display.flip()
 
     def game_over(window, score):
-        if count_iter > LIMIT_WHEN_START_DRAWING:
+        if count_iter > LIMIT_WHEN_START_DRAWING and globals.DRAW_ALL:
             font_1 = pygame.font.Font('freesansbold.ttf', 64)
             font_2 = pygame.font.Font('freesansbold.ttf', 32)
 
@@ -85,8 +88,23 @@ def start_game(count_iter):
     reward = 0
 
     while True:
-        window.fill((0, 0, 0))
+        if len(globals.Q_HISTORY) >= 256:
+            with open("q_history.txt", "a") as file:
+                for q_list in globals.Q_HISTORY:
+                    for q_elem in q_list:
+                        file.write(str(q_elem) + "  ")
+                    file.write("\n")
+            globals.Q_HISTORY = []
+
+        if count_iter > LIMIT_WHEN_START_DRAWING and globals.DRAW_ALL:
+            window.fill((0, 0, 0))
+
         pressed = pygame.key.get_pressed()
+
+        if pressed[pygame.K_SPACE] and pressed[pygame.K_d]:
+            globals.DRAW_ALL = not globals.DRAW_ALL
+            pygame.display.flip()
+
 
         if count_iteration == NN_ITER_IN_STATE and previous_input != []:
             # De aici in jos ne aflam deja in urmatorul state (dupa ce am aplicat actiunea ai_pressed)
@@ -102,12 +120,14 @@ def start_game(count_iter):
 
         # Se continua iteratia jocului
         if pressed[pygame.K_ESCAPE]:
-            pygame.quit()
-            sys.exit()
+            return False
+            # pygame.quit()
+            # sys.exit()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+                return False
+                # pygame.quit()
+                # sys.exit()
 
         scroll_params, collide_enemy, collide_bonus, killed_enemies, is_win = player.move(ai_pressed, pressed,
                                                                                           tiles + enemies + bonuses + finish_states)
@@ -182,7 +202,7 @@ def start_game(count_iter):
             count_iteration = 0
 
         count_iter += 1
-        if count_iter > LIMIT_WHEN_START_DRAWING:
+        if count_iter > LIMIT_WHEN_START_DRAWING and globals.DRAW_ALL:
             draw_objects(closer_objects, player)
             pygame.display.flip()
             clock.tick(TICK_RATE)
@@ -214,7 +234,15 @@ def start_game(count_iter):
 
     train_network(np.array([processed_state]), reward, previous_input, previous_output)
 
-    time.sleep(2)
+    with open("q_history.txt", "a") as file:
+        for q_list in globals.Q_HISTORY:
+            for q_elem in q_list:
+                file.write(str(q_elem) + "  ")
+            file.write("\n")
+        globals.Q_HISTORY = []
+
+    if HUMAN_PLAYER:
+        time.sleep(2)
     return True
     # pressed = pygame.key.get_pressed()
     # while not pressed[pygame.K_KP_ENTER] or not pressed[pygame.K_KP_ENTER]:
@@ -231,6 +259,9 @@ count_iter = 0
 keep_playing = start_game(count_iter)
 while keep_playing:
     keep_playing = start_game(count_iter)
+
+nn.model.save("model.h5")
+print("Model saved")
 
 pygame.quit()
 

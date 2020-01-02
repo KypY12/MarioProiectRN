@@ -4,6 +4,14 @@ from objects.finish import Finish
 from objects.tile import Tile
 
 
+def get_tile_collisions(target_entity, objects):
+    collisions = []
+    for obj in objects:
+        if type(obj) == Tile and target_entity.colliderect(obj.rect):
+            collisions.append(obj)
+    return collisions
+
+
 def get_collisions_all(target_entity, objects):
     collisions = []
     for obj in objects:

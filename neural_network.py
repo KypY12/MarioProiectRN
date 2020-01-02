@@ -1,13 +1,19 @@
+import time
+
+from keras.models import model_from_json
+from keras.models import load_model
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.optimizers import SGD
 from keras.regularizers import l2
 import numpy as np
 from globals import *
+import globals
+
 
 actions = {0: pygame.K_UP, 1: pygame.K_LEFT, 2: pygame.K_RIGHT}
 DISCOUNT_FACTOR = 0.9
-EPSILON = 0.3
+EPSILON = 0.25
 
 PREVIOUS_NN_INPUT = []
 PREVIOUS_NN_OUTPUT = []
@@ -15,17 +21,18 @@ PREVIOUS_NN_OUTPUT = []
 
 # Structura NN
 model = Sequential()
-# model.add(Dense(units=500, activation='sigmoid', kernel_regularizer=l2(1e-4), kernel_initializer="lecun_normal"))
+model.add(Dense(units=500, activation='tanh', kernel_regularizer=l2(1e-2)))
 # model.add(Dropout(0.2))
-model.add(Dense(units=100, activation='sigmoid', kernel_regularizer=l2(1e-4), kernel_initializer="lecun_normal"))
-model.add(Dense(units=3, activation='softmax', kernel_regularizer=l2(1e-4), kernel_initializer="lecun_normal"))
+model.add(Dense(units=100, activation='sigmoid', kernel_regularizer=l2(1e-2), kernel_initializer="lecun_normal"))
+model.add(Dense(units=3, activation='softmax', kernel_regularizer=l2(1e-2), kernel_initializer="lecun_normal"))
 
 # Algoritmi
-model.compile(optimizer=SGD(lr=0.1, momentum=0.9, nesterov=True), loss='categorical_crossentropy')
+model.compile(optimizer=SGD(lr=0.9, momentum=0.1, nesterov=True), loss='categorical_crossentropy')
 
 
-# Antrenament
-# model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=20, batch_size=64)
+# Pentru a continua antrenarea de la un anumit stadiu (salvat in model.h5 care se gaseste la final in mario.py)
+model = load_model("model.h5")
+print("Loaded model from disk")
 
 
 def estimate_Q(current_state):
@@ -34,6 +41,7 @@ def estimate_Q(current_state):
 
 def get_max_q(state):
     estimated_q_values = estimate_Q(state)[0]
+    globals.Q_HISTORY += [estimated_q_values]
     max_action_index = 0
     max_q_value = 0
 
