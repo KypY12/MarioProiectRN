@@ -3,6 +3,7 @@ import time
 from keras.engine.saving import load_model
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
+from keras.layers.advanced_activations import LeakyReLU
 from keras.optimizers import SGD
 from keras.regularizers import l2
 import numpy as np
@@ -12,7 +13,8 @@ import globals
 
 actions = {0: pygame.K_UP, 1: pygame.K_LEFT, 2: pygame.K_RIGHT}
 DISCOUNT_FACTOR = 0.9
-EPSILON = 0.1
+EPSILON = 0.5
+COUNT_FOR_EPSILON = 0
 
 PREVIOUS_NN_INPUT = []
 PREVIOUS_NN_OUTPUT = []
@@ -20,13 +22,14 @@ PREVIOUS_NN_OUTPUT = []
 
 # Structura NN
 model = Sequential()
-model.add(Dense(units=300, activation='sigmoid', kernel_regularizer=l2(1e-2)))
+# model.add(Dense(units=256, activation='relu', kernel_regularizer=l2(1e-2)))
 # model.add(Dropout(0.2))
-model.add(Dense(units=100, activation='tanh', kernel_regularizer=l2(1e-3), kernel_initializer="lecun_normal"))
-model.add(Dense(units=3, activation='softmax', kernel_regularizer=l2(1e-4), kernel_initializer="lecun_normal"))
+model.add(Dense(units=64, kernel_regularizer=l2(1e-3), kernel_initializer="lecun_normal", bias_initializer="lecun_normal"))
+model.add(LeakyReLU())
+model.add(Dense(units=3, activation='linear', kernel_regularizer=l2(1e-4), kernel_initializer="lecun_normal", bias_initializer="lecun_normal"))
 
 # Algoritmi
-model.compile(optimizer=SGD(lr=0.001, momentum=0.9, nesterov=True), loss='categorical_crossentropy')
+model.compile(optimizer=SGD(lr=0.001, momentum=0.5, nesterov=True), loss='mean_squared_error')
 
 
 # Pentru a continua antrenarea de la un anumit stadiu (salvat in model_trained_one_night1.h5 care se gaseste la final in mario.py)
@@ -81,7 +84,7 @@ def train_network(next_state, reward, previous_state, previous_q):
     print("=================")
     print(previous_q)
     print(actual_value)
-    model.fit(np.array(previous_state), np.array([actual_value]), epochs=1)
+    model.fit(np.array(previous_state), np.array([actual_value]))
 
 
 def train_network_batch(batch_list):
@@ -91,10 +94,20 @@ def train_network_batch(batch_list):
         previous_states.append(batch[2][0])
         actual_values.append(compute_actual_value(batch[0], batch[1], batch[3]))
 
-    model.fit(np.array(previous_states), np.array(actual_values), epochs=1)
+    model.fit(np.array(previous_states), np.array(actual_values))
+    print("=================")
+    print(batch_list[0][3])
+    print(actual_values[0])
 
 
 def get_action_from_nn(current_state):
+    global COUNT_FOR_EPSILON, EPSILON
+    if EPSILON > 0.1:
+        COUNT_FOR_EPSILON += 1
+        if COUNT_FOR_EPSILON >= 200:
+            COUNT_FOR_EPSILON = 0
+            EPSILON -= 0.001
+
     action_index, q_value, previous_input, previous_output = get_max_q(current_state)
     current_action_val = actions[action_index]
     return current_action_val, previous_input, previous_output

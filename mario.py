@@ -358,7 +358,7 @@ count_episodes = 0
 
 keep_playing = start_game(count_iter, count_to_autosave, window, clock)
 build_map("my_second_map")
-count_map_life = 100
+count_map_life = 20
 
 while keep_playing:
     if count_map_life > 0:
@@ -366,7 +366,7 @@ while keep_playing:
     else:
         build_map("my_second_map")
         TILES_COUNT_X, TILES_COUNT_Y, WINDOW_HEIGHT = set_map_params("maps/my_second_map.map")
-        count_map_life = 100
+        count_map_life = 20
     count_episodes += 1
     print("Episode: ", count_episodes)
     keep_playing = start_game(count_iter, count_to_autosave, window, clock)

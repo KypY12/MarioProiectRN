@@ -18,7 +18,7 @@ class Sensor:
                        "finish": (255, 100, 100)}
         self.nn_input_values = {"air": 0,
                                 "tile": 0.5,
-                                "bonus": 0.2,
+                                "bonus": 0.3,
                                 "finish": 0.1,
                                 "enemy": 1}
         self.hit = "air"
