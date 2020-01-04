@@ -1,7 +1,6 @@
 import time
 
-from keras.models import model_from_json
-from keras.models import load_model
+from keras.engine.saving import load_model
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.optimizers import SGD
@@ -13,7 +12,7 @@ import globals
 
 actions = {0: pygame.K_UP, 1: pygame.K_LEFT, 2: pygame.K_RIGHT}
 DISCOUNT_FACTOR = 0.9
-EPSILON = 0.25
+EPSILON = 0.1
 
 PREVIOUS_NN_INPUT = []
 PREVIOUS_NN_OUTPUT = []
@@ -21,17 +20,17 @@ PREVIOUS_NN_OUTPUT = []
 
 # Structura NN
 model = Sequential()
-model.add(Dense(units=500, activation='tanh', kernel_regularizer=l2(1e-2)))
+model.add(Dense(units=300, activation='sigmoid', kernel_regularizer=l2(1e-2)))
 # model.add(Dropout(0.2))
-model.add(Dense(units=100, activation='sigmoid', kernel_regularizer=l2(1e-2), kernel_initializer="lecun_normal"))
-model.add(Dense(units=3, activation='softmax', kernel_regularizer=l2(1e-2), kernel_initializer="lecun_normal"))
+model.add(Dense(units=100, activation='tanh', kernel_regularizer=l2(1e-3), kernel_initializer="lecun_normal"))
+model.add(Dense(units=3, activation='softmax', kernel_regularizer=l2(1e-4), kernel_initializer="lecun_normal"))
 
 # Algoritmi
-model.compile(optimizer=SGD(lr=0.9, momentum=0.1, nesterov=True), loss='categorical_crossentropy')
+model.compile(optimizer=SGD(lr=0.001, momentum=0.9, nesterov=True), loss='categorical_crossentropy')
 
 
-# Pentru a continua antrenarea de la un anumit stadiu (salvat in model.h5 care se gaseste la final in mario.py)
-model = load_model("model.h5")
+# Pentru a continua antrenarea de la un anumit stadiu (salvat in model_trained_one_night1.h5 care se gaseste la final in mario.py)
+# model = load_model("model.h5")
 print("Loaded model from disk")
 
 
@@ -79,7 +78,20 @@ def compute_actual_value(next_state, reward, previous_q):
 
 def train_network(next_state, reward, previous_state, previous_q):
     actual_value = compute_actual_value(next_state, reward, previous_q)
-    model.fit(np.array(previous_state), np.array([actual_value]), epochs=5)
+    print("=================")
+    print(previous_q)
+    print(actual_value)
+    model.fit(np.array(previous_state), np.array([actual_value]), epochs=1)
+
+
+def train_network_batch(batch_list):
+    previous_states = []
+    actual_values = []
+    for batch in batch_list:
+        previous_states.append(batch[2][0])
+        actual_values.append(compute_actual_value(batch[0], batch[1], batch[3]))
+
+    model.fit(np.array(previous_states), np.array(actual_values), epochs=1)
 
 
 def get_action_from_nn(current_state):

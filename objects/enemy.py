@@ -2,6 +2,14 @@ from globals import *
 import collision
 
 
+def get_tile_map_position_e(x, first_tile_x):
+    continuous_x = np.abs(x - first_tile_x)
+    if continuous_x != 0:
+        return int((continuous_x - (x%TILE_WIDTH))/TILE_WIDTH)
+    else:
+        return 0
+
+
 class Enemy:
     def __init__(self, window, x, y, width, height):
         self.window = window
@@ -53,12 +61,14 @@ class Enemy:
         elif self.direction == "down":
             return 1
 
-    def move(self, objects, scroll_movement):
-        # other_objects = [obj.rect for obj in objects if obj.rect != self.rect]
-        if self in objects:
-            objects.remove(self)
-
+    def move(self, player, tiles, first_obj, scroll_movement):
         self.move_params = [0, 0]
+        current_tile_map_pos = get_tile_map_position_e(self.rect.x, first_obj.rect.x)
+        first_closer_pos = current_tile_map_pos-4
+        if first_closer_pos < 0:
+            first_closer_pos = 0
+        tile_lists = tiles[first_closer_pos:current_tile_map_pos+4]
+        objects = [x for y in tile_lists for x in y] + [player]
 
         # if self.move_count > 0:
         #     self.move_on_direction()

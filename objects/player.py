@@ -17,10 +17,6 @@ class Player:
         pygame.draw.rect(self.window, self.color, self.rect, 0)
 
     def move(self, nn_pressed, pressed, objects):
-        # other_objects = [obj for obj in objects if obj.rect != self.rect]
-        if self in objects:
-            objects.remove(self)
-
         collide_bonus = False
         collide_enemy = False
 
@@ -55,7 +51,8 @@ class Player:
 
         move_params[1] += int(self.vertical_momentum)
 
-        self.collisions_dict, check_move_params, actual_move, collide_enemy, collide_bonus, killed_enemies, is_finish = move_and_collide(self.rect, move_params, objects, True)
+        self.collisions_dict, check_move_params, actual_move, collide_enemy, collide_bonus, killed_enemies, is_finish = \
+            move_and_collide(self.rect, move_params, objects, True)
 
         for b in collide_bonus:
             self.score += 1

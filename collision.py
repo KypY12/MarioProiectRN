@@ -79,6 +79,7 @@ def move_and_collide(target_entity, move_params, objects, is_player):
 
     if len(collisions) > 0:
         object_index = 0
+
         # Coliziune in stanga
         if move_params[0] < 0:
             # Cautam obiectul del mai din dreapta cu care a intrat in coliziune
@@ -121,34 +122,35 @@ def move_and_collide(target_entity, move_params, objects, is_player):
 
     if len(collisions) > 0:
         object_index = 0
-        # Coliziune in sus
-        if move_params[1] < 0:
-            # Cautam obiectul del mai de jos cu care a intrat in coliziune
-            max_index = get_first_collision(collisions, "y", "up")
-            # Punem target_entity exact sub acel obiect
-            target_entity.y = collisions[max_index].rect.y + collisions[max_index].rect.height
+        if type(collisions[object_index]) != Bonus:
+            # Coliziune in sus
+            if move_params[1] < 0:
+                # Cautam obiectul del mai de jos cu care a intrat in coliziune
+                max_index = get_first_collision(collisions, "y", "up")
+                # Punem target_entity exact sub acel obiect
+                target_entity.y = collisions[max_index].rect.y + collisions[max_index].rect.height
 
-            actual_moves[1] = target_entity.y - last_pos[1]
+                actual_moves[1] = target_entity.y - last_pos[1]
 
-            up_collision = True
-            check_move_params[1] = 0
-            object_index = max_index
+                up_collision = True
+                check_move_params[1] = 0
+                object_index = max_index
 
-        elif move_params[1] > 0:
-            # Cautam obiectul del mai de sus cu care a intrat in coliziune
-            min_index = get_first_collision(collisions, "y", "down")
-            # Punem target_entity exact deasupra acelui obiect
-            target_entity.y = collisions[min_index].rect.y - target_entity.height
+            elif move_params[1] > 0:
+                # Cautam obiectul del mai de sus cu care a intrat in coliziune
+                min_index = get_first_collision(collisions, "y", "down")
+                # Punem target_entity exact deasupra acelui obiect
+                target_entity.y = collisions[min_index].rect.y - target_entity.height
 
-            actual_moves[1] = target_entity.y - last_pos[1]
+                actual_moves[1] = target_entity.y - last_pos[1]
 
-            down_collision = True
-            check_move_params[1] = 0
-            object_index = min_index
+                down_collision = True
+                check_move_params[1] = 0
+                object_index = min_index
 
-            if type(collisions[object_index]) == Enemy:
-                down_collision = False
-                killed_enemies += [collisions[object_index]]
+                if type(collisions[object_index]) == Enemy:
+                    down_collision = False
+                    killed_enemies += [collisions[object_index]]
 
         if type(collisions[object_index]) == Enemy:
             collide_enemy += [collisions[object_index]]

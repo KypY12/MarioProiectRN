@@ -17,10 +17,10 @@ class Sensor:
                        "bonus": (255, 255, 0),
                        "finish": (255, 100, 100)}
         self.nn_input_values = {"air": 0,
-                                "tile": -1,
-                                "bonus": -5,
-                                "finish": -10,
-                                "enemy": 10}
+                                "tile": 0.5,
+                                "bonus": 0.2,
+                                "finish": 0.1,
+                                "enemy": 1}
         self.hit = "air"
         self.count = 0
 
