@@ -137,12 +137,16 @@ def get_nn_input(sensors):
     return input
 
 
-def get_tile_map_position(x, first_tile_x):
+def get_tile_map_position(x, y, first_tile_x):
     continuous_x = np.abs(x - first_tile_x)
+    ret_x = 0
     if continuous_x != 0:
-        return int((continuous_x - (x % TILE_WIDTH))/TILE_WIDTH)
-    else:
-        return 0
+        ret_x = int((continuous_x - (x % TILE_WIDTH))/TILE_WIDTH)
+
+    ret_y = int(y / TILE_HEIGHT)
+
+    return ret_x, ret_y
+
 
 # def draw_tiles(rects, scroll_move):
 #     for rect in rects:

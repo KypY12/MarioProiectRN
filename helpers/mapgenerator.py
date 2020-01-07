@@ -1,15 +1,14 @@
 import numpy.random as nprandom
 
-PORTION_SIZE = 40
-MIN_WIDTH = 200
+PORTION_SIZE = 30
+MIN_WIDTH = 300
 MAX_WIDTH = 400
 MAP_HEIGHT = 32
 
 
-
 def get_floor():
     def is_gap():
-        if nprandom.uniform() < 0.3:
+        if nprandom.uniform() < 0.5:
             gap_size = nprandom.randint(4, PORTION_SIZE // 3)
             return (
             nprandom.randint(1, PORTION_SIZE - 1 - gap_size), gap_size)  # unde incepe prapastia si ce lungimme are
@@ -20,6 +19,21 @@ def get_floor():
     gap_start, gap_size = gap
     gap_line = (['T'] * gap_start) + ([' '] * gap_size) + (['T'] * (PORTION_SIZE - gap_start - gap_size))
     return (True, gap_line)
+
+
+def add_pipe(portion):
+    def pipe_base(): return [' '] * (PORTION_SIZE // 2 - 1 - PORTION_SIZE % 2) + ['T'] * 3 + [' '] * (
+                PORTION_SIZE // 2 - 2 + PORTION_SIZE % 2)
+
+    def pipe_top(): return [' '] * (PORTION_SIZE // 2 - 2 - PORTION_SIZE % 2) + ['T'] * 5 + [' '] * (
+                PORTION_SIZE // 2 - 3 + PORTION_SIZE % 2)
+
+    portion.append(pipe_base())
+    portion.append(pipe_base())
+    portion.append(pipe_base())
+    portion.append(pipe_base())
+    portion.append(pipe_top())
+    portion.append(pipe_top())
 
 
 def get_portion():
@@ -52,20 +66,28 @@ def print_portion(portion):
 
 
 
-
 def build_map(map_name):
     map_width = nprandom.randint(MIN_WIDTH, MAX_WIDTH)
     map_width -= map_width % PORTION_SIZE
     harta = []
     for i in range(map_width // PORTION_SIZE):
         portion = []
-        is_gap, floor = get_floor()
+        pipe = False
+        if i == 0:
+            is_gap = True
+            while is_gap:
+                is_gap, floor = get_floor()
+        else:
+            is_gap, floor = get_floor()
         if is_gap:
             floor_range = 3
             portions_range = 6
         else:
             floor_range = 2
             portions_range = 3
+            if nprandom.random() < 0.0:
+                portions_range = 11
+                pipe = True
         for _ in range(floor_range):
             portion.append(floor)
 
@@ -74,8 +96,9 @@ def build_map(map_name):
             portion.append([' '] * PORTION_SIZE)
             portion.append([' '] * PORTION_SIZE)
             portion.append([' '] * PORTION_SIZE)
-
-        portion_prob = 0.65
+        elif pipe:
+            add_pipe(portion)
+        portion_prob = 0.0
         for i in range(portions_range, MAP_HEIGHT, 6):
             if nprandom.uniform() < portion_prob:
                 por, coin_monster_por = get_portion()

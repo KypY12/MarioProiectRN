@@ -45,6 +45,8 @@ def get_objects_from_matrix_map(matrix_map, window):
                     tiles_matrix_line.append("_")
                 elif type(obj) == Player:
                     player = obj
+                    # print(len(tiles_matrix), " : -----------------")
+                    # print(len(tiles_matrix_line), " : -----------------")
                     tiles_matrix_line.append("_")
                 elif type(obj) == Bonus:
                     bonuses.append(obj)
@@ -65,6 +67,8 @@ def get_objects_from_matrix_map(matrix_map, window):
 
     tiles_matrix = np.array(tiles_matrix).transpose()
     print(tiles_matrix.shape)
+    globals.MAP_WIDTH = tiles_matrix.shape[0]
+    globals.MAP_HEIGHT = tiles_matrix.shape[1]
     tiles_matrix = [[x for x in y if x != "_"] for y in tiles_matrix]
 
     globals.TILES_COUNT_X = len(matrix_map[0])

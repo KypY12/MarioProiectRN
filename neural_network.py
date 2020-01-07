@@ -13,27 +13,37 @@ import globals
 
 actions = {0: pygame.K_UP, 1: pygame.K_LEFT, 2: pygame.K_RIGHT}
 DISCOUNT_FACTOR = 0.9
-EPSILON = 0.5
+EPSILON = 0.7
 COUNT_FOR_EPSILON = 0
 
 PREVIOUS_NN_INPUT = []
 PREVIOUS_NN_OUTPUT = []
 
 
-# Structura NN
-model = Sequential()
-# model.add(Dense(units=256, activation='relu', kernel_regularizer=l2(1e-2)))
-# model.add(Dropout(0.2))
-model.add(Dense(units=64, kernel_regularizer=l2(1e-3), kernel_initializer="lecun_normal", bias_initializer="lecun_normal"))
-model.add(LeakyReLU())
-model.add(Dense(units=3, activation='linear', kernel_regularizer=l2(1e-4), kernel_initializer="lecun_normal", bias_initializer="lecun_normal"))
+def get_model(previous_weights):
+    model = Sequential()
+    model.add(Dense(units=128, activation='sigmoid', kernel_regularizer=l2(1e-2)))
+    # model.add(Dropout(0.2))
+    model.add(Dense(units=64, kernel_regularizer=l2(1e-4), kernel_initializer="lecun_normal",
+                    bias_initializer="lecun_normal"))
+    model.add(LeakyReLU())
+    model.add(Dense(units=3, activation='linear', kernel_regularizer=l2(1e-4), kernel_initializer="lecun_normal",
+                    bias_initializer="lecun_normal"))
 
-# Algoritmi
-model.compile(optimizer=SGD(lr=0.001, momentum=0.5, nesterov=True), loss='mean_squared_error')
 
+    model.compile(optimizer=SGD(lr=0.001, momentum=0.5, nesterov=True), loss='mean_squared_error')
+
+    if previous_weights != 0:
+        model.set_weights(previous_weights)
+
+    return model
+
+
+model = get_model(0)
+target_model = get_model(model.get_weights())
 
 # Pentru a continua antrenarea de la un anumit stadiu (salvat in model_trained_one_night1.h5 care se gaseste la final in mario.py)
-# model = load_model("model.h5")
+# model = load_model("./models/1578418544.540242_model_13.h5")
 print("Loaded model from disk")
 
 
@@ -41,9 +51,19 @@ def estimate_Q(current_state):
     return model.predict(np.array(current_state))
 
 
-def get_max_q(state):
-    estimated_q_values = estimate_Q(state)[0]
+def estimate_Q_target(current_state):
+    return target_model.predict(np.array(current_state))
+
+
+def get_max_q(state, is_target=False):
+    estimated_q_values = []
+    if is_target:
+        estimated_q_values = estimate_Q(state)[0]
+    else:
+        estimated_q_values = estimate_Q_target(state)[0]
+
     globals.Q_HISTORY += [estimated_q_values]
+
     max_action_index = 0
     max_q_value = 0
 
@@ -57,6 +77,7 @@ def get_max_q(state):
                 max_q_value = estimated_q_values[index]
                 max_action_index = index
 
+    #     index actiune,   actiune,      stare input,  output retea
     return max_action_index, max_q_value, state, estimated_q_values
 
 
@@ -65,7 +86,7 @@ def compute_y(reward, max_q):
 
 
 def compute_actual_value(next_state, reward, previous_q):
-    max_index, max_q, useless_1, useless_2 = get_max_q(next_state)
+    max_index, max_q, useless_1, useless_2 = get_max_q(next_state, is_target=True)
     current_y = compute_y(reward, max_q)
 
     # [Q1, Q2, ... , R+y*maxQ, ... , Qn] = actual_value
@@ -102,11 +123,16 @@ def train_network_batch(batch_list):
 
 def get_action_from_nn(current_state):
     global COUNT_FOR_EPSILON, EPSILON
+    print("Current Epsilon: ", EPSILON)
     if EPSILON > 0.1:
         COUNT_FOR_EPSILON += 1
-        if COUNT_FOR_EPSILON >= 200:
+        if COUNT_FOR_EPSILON >= 1000:
             COUNT_FOR_EPSILON = 0
-            EPSILON -= 0.001
+            EPSILON -= 0.01
+    # else:
+    #     model.save(
+    #         "./models/" + str(globals.TIME_STAMP) + "_model_" + str(globals.SAVES_COUNTER) + "_EPSILON_REACHED_0_1.h5")
+    #     print("Model saved")
 
     action_index, q_value, previous_input, previous_output = get_max_q(current_state)
     current_action_val = actions[action_index]
