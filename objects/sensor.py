@@ -16,11 +16,28 @@ class Sensor:
                        "enemy": (0, 255, 255),
                        "bonus": (255, 255, 0),
                        "finish": (255, 100, 100)}
-        self.nn_input_values = {"air": 0,
-                                "tile": 0.5,
-                                "bonus": 0.3,
-                                "finish": 0.1,
-                                "enemy": 1}
+
+        self.nn_input_values = {"air":      [1,0,0,0,0],
+                                "tile":     [0,1,0,0,0],
+                                "bonus":    [0,0,1,0,0],
+                                "finish":   [0,0,0,1,0],
+                                "enemy":    [0,0,0,0,1]}
+
+        self.nn_input_values = {"air": [0],
+                                "tile": [0.5],
+                                "bonus": [0.3],
+                                "finish": [0.1],
+                                "enemy": [0.5]}
+        # self.nn_input_values = {"air": [0],
+        #                         "tile": [1],
+        #                         "bonus": [0.5],
+        #                         "finish": [0.1],
+        #                         "enemy": [-1]}
+        # self.nn_input_values = {"air": [0],
+        #                         "tile": [3],
+        #                         "bonus": [2],
+        #                         "finish": [1],
+        #                         "enemy": [5]}
         self.hit = "air"
         self.count = 0
 

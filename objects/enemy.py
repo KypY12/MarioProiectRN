@@ -20,7 +20,7 @@ class Enemy:
         self.prev_y = 0
 
         self.move_params = [0, 0]
-        self.move_step = 5
+        self.move_step = 1
         self.move_max_count = 500
         self.move_count = self.move_max_count
         self.collisions_dict = {"up": False, "down": False, "right": False, "left": False}

@@ -274,6 +274,10 @@ def start_game(count_iter, count_to_autosave, window, clock, experiences_for_rep
             globals.DRAW_ALL = True
             pygame.display.flip()
 
+        if pressed[pygame.K_p]:
+            build_map("my_second_map")
+            return True, experiences_for_replay
+
         # if pressed[pygame.K_t]:
         #     globals.TRAIN_NN = True
         # elif pressed[pygame.K_y]:
@@ -509,7 +513,7 @@ count_episodes = 0
 
 experiences_for_replay = []
 keep_playing = start_game(count_iter, count_to_autosave, window, clock, experiences_for_replay)
-count_map_life = 10
+count_map_life = 1
 
 while keep_playing:
     if count_map_life > 0:
@@ -523,8 +527,8 @@ while keep_playing:
     print("Episode: ", count_episodes)
     keep_playing, experiences_for_replay = start_game(count_iter, count_to_autosave, window, clock, experiences_for_replay)
 
-    if count_episodes % 20 == 0:
-        nn.target_model.set_weights(nn.model.get_weights())
+    # if count_episodes % 20 == 0:
+    #     nn.target_model.set_weights(nn.model.get_weights())
 
 
 if not HUMAN_PLAYER:

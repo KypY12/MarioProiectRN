@@ -1,14 +1,14 @@
 import numpy.random as nprandom
 
 PORTION_SIZE = 30
-MIN_WIDTH = 300
-MAX_WIDTH = 400
+MIN_WIDTH = 1000
+MAX_WIDTH = 1200
 MAP_HEIGHT = 32
 
 
 def get_floor():
     def is_gap():
-        if nprandom.uniform() < 0.5:
+        if nprandom.uniform() < 0.1:
             gap_size = nprandom.randint(4, PORTION_SIZE // 3)
             return (
             nprandom.randint(1, PORTION_SIZE - 1 - gap_size), gap_size)  # unde incepe prapastia si ce lungimme are
@@ -85,7 +85,7 @@ def build_map(map_name):
         else:
             floor_range = 2
             portions_range = 3
-            if nprandom.random() < 0.0:
+            if nprandom.random() < 0.4:
                 portions_range = 11
                 pipe = True
         for _ in range(floor_range):
@@ -98,7 +98,7 @@ def build_map(map_name):
             portion.append([' '] * PORTION_SIZE)
         elif pipe:
             add_pipe(portion)
-        portion_prob = 0.0
+        portion_prob = 0.7
         for i in range(portions_range, MAP_HEIGHT, 6):
             if nprandom.uniform() < portion_prob:
                 por, coin_monster_por = get_portion()

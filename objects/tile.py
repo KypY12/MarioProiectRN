@@ -5,10 +5,10 @@ class Tile:
     def __init__(self, window, x, y, width, height):
         self.window = window
         self.rect = pygame.Rect(x, y, width, height)
-        if x % 40 == 0:
-            self.color = (255,255,255)
-        else:
-            self.color = (255,50,10)
+        # if x % 40 == 0:
+        self.color = (255,255,255)
+        # else:
+        #     self.color = (255,50,10)
 
     def draw(self):
         pygame.draw.rect(self.window, self.color, self.rect, 0)
